@@ -21,7 +21,6 @@ class Camera2D
 
     public void draw()
     {
-        Console.Write(destination);
         if (destination != null)
         {
             Vector2 posbefore = position;

@@ -8,6 +8,8 @@ public class Binding
     public static Binding MOVE_UP = new Binding(KeyboardKey.KEY_W, 0, -1);
     public static Binding MOVE_DOWN = new Binding(KeyboardKey.KEY_S, 0, 1);
 
+    public static Binding MAIN_MENU = new Binding(KeyboardKey.KEY_ESCAPE, 0, 0);
+
     public KeyboardKey key;
     public Vector2 axis;
 

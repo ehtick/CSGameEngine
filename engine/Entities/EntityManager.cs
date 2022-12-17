@@ -19,4 +19,12 @@ class EntityManager : IManager
     {
         Entities.Add(entity);
     }
+
+    public void close()
+    {
+        foreach (Entity entity in Entities)
+        {
+            entity.close();
+        }
+    }
 }

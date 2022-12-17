@@ -14,4 +14,12 @@ static class ManagerController
             manager.update();
         }
     }
+
+    public static void close()
+    {
+        foreach (IManager manager in Managers)
+        {
+            manager.close();
+        }
+    }
 }

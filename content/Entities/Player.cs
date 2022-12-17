@@ -5,9 +5,11 @@ class Player : Entity
 {
     public Camera2D camera = new Camera2D();
 
-    public float speed = 0.1f;
+    public float speed = 0.5f;
 
     public Rectangle rect;
+
+    public Texture2D playerImage;
 
     public Player() : base(Entities.PLAYER, "player")
     {
@@ -17,22 +19,15 @@ class Player : Entity
         this.rect.affectedByCamera = false;
         this.rect.Center = new Vector2(400, 400);
 
-        Console.WriteLine(this.rect.position);
+        this.playerImage = Textures.LoadTexture("male-character.png", this.rect.width, this.rect.height);
     }
 
     public override void update()
     {
-        this.camera.draw();
-    }
-
-    public void move(Vector2 amount)
-    {
-        camera.position += amount * speed * Raylib.GetFrameTime() * 1000;
-    }
-
-    public override void draw(int shiftx = 0, int shifty = 0)
-    {
-        this.rect.draw(0, 0);
+        if (Raylib.IsKeyPressed(Binding.MAIN_MENU.key))
+        {
+            GuiManager.ToggleGui("MAIN_MENU");
+        }
 
         if (Raylib.IsKeyDown(Binding.MOVE_LEFT.key))
         {
@@ -53,5 +48,22 @@ class Player : Entity
         {
             move(Binding.MOVE_DOWN.axis);
         }
+
+        this.camera.draw();
+    }
+
+    public void move(Vector2 amount)
+    {
+        camera.position += VectorMath.Normalize(amount * speed * Raylib.GetFrameTime() * 1000);
+    }
+
+    public override void draw(int shiftx = 0, int shifty = 0)
+    {
+        Raylib.DrawTexture(playerImage, (int)400 - (width / 2), (int)400 - (height / 2), Color.WHITE);
+    }
+
+    public override void close()
+    {
+        Raylib.UnloadTexture(playerImage);
     }
 }

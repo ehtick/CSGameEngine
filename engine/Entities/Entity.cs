@@ -33,4 +33,9 @@ class Entity : IDrawable
     {
         // draw();
     }
+
+    public virtual void close()
+    {
+
+    }
 }

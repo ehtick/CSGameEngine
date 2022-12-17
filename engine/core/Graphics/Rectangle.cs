@@ -12,7 +12,7 @@ class Rectangle : IDrawable
     {
         get
         {
-            return center;
+            return new Vector2(position.X + (int)(width / 2), position.Y + (int)(height / 2));
         }
 
         set
@@ -34,7 +34,7 @@ class Rectangle : IDrawable
         this.colour = colour;
     }
 
-    public void draw(int shiftx = 0, int shifty = 0)
+    public virtual void draw(int shiftx = 0, int shifty = 0)
     {
         Raylib.DrawRectangle((int)position.X, (int)position.Y, width, height, colour);
     }
