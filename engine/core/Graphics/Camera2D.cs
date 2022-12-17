@@ -33,9 +33,13 @@ class Camera2D
             }
         }
 
-        foreach (Entity entity in EntityManager.Entities)
+        if (LevelManager.ActiveLevel is Level)
         {
-            entity.draw((int)position.X, (int)position.Y);
+            foreach (Entity entity in LevelManager.ActiveLevel.entityManager.Entities)
+            {
+                entity.draw((int)position.X, (int)position.Y);
+            }
         }
+
     }
 }

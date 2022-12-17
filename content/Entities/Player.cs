@@ -5,13 +5,13 @@ class Player : Entity
 {
     public Camera2D camera = new Camera2D();
 
-    public float speed = 0.5f;
+    public float speed = 0.3f;
 
     public Rectangle rect;
 
     public Texture2D playerImage;
 
-    public Player() : base(Entities.PLAYER, "player")
+    public Player(Level level) : base(level, Entities.PLAYER, "player")
     {
         this.position = new Vector2(400, 400);
 
@@ -54,7 +54,7 @@ class Player : Entity
 
     public void move(Vector2 amount)
     {
-        camera.position += VectorMath.Normalize(amount * speed * Raylib.GetFrameTime() * 1000);
+        camera.position += VectorMath.Normalize(amount) * speed * Time.deltaTime;
     }
 
     public override void draw(int shiftx = 0, int shifty = 0)

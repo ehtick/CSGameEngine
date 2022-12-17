@@ -1,47 +1,51 @@
-namespace Time
+using Raylib_cs;
+
+
+static class Time
 {
-    static class Time
+    public static float deltaTime;
+
+    public static List<Event> Events = new List<Event>();
+
+    public class Event
     {
-        public static List<Event> Events = new List<Event>();
+        public Func<int> callback;
+        public int ms;
+        public int endtime;
 
-        public class Event
+        public Event(Func<int> callback, int ms)
         {
-            public Func<int> callback;
-            public int ms;
-            public int endtime;
+            this.callback = callback;
+            this.ms = ms;
+            this.endtime = (int)(DateTime.Now.Ticks + ms * 10000);
+        }
+    }
 
-            public Event(Func<int> callback, int ms)
+    public static void Runin(Func<int> function, int ms)
+    {
+        Events.Add(new Event(function, ms));
+    }
+
+    public static void UpdateEvents()
+    {
+        deltaTime = Raylib.GetFrameTime() * 1000;
+
+        List<Event> calledEvents = new List<Event>();
+
+        int i = 0;
+        foreach (Event ev in Events)
+        {
+            if ((int)DateTime.Now.Ticks >= ev.endtime)
             {
-                this.callback = callback;
-                this.ms = ms;
-                this.endtime = (int)(DateTime.Now.Ticks + ms * 10000);
+                ev.callback();
+                calledEvents.Add(ev);
             }
+            i++;
         }
 
-        public static void Runin(Func<int> function, int ms)
+        foreach (Event ev in calledEvents)
         {
-            Events.Add(new Event(function, ms));
-        }
-
-        public static void UpdateEvents()
-        {
-            List<Event> calledEvents = new List<Event>();
-
-            int i = 0;
-            foreach (Event ev in Events)
-            {
-                if ((int)DateTime.Now.Ticks >= ev.endtime)
-                {
-                    ev.callback();
-                    calledEvents.Add(ev);
-                }
-                i++;
-            }
-
-            foreach (Event ev in calledEvents)
-            {
-                Events.Remove(ev);
-            }
+            Events.Remove(ev);
         }
     }
 }

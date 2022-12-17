@@ -4,8 +4,6 @@ using System.Numerics;
 
 class MainMenu : GuiScreen
 {
-    public Button testBtn;
-
     public MainMenu() : base("MAIN_MENU")
     {
         this.position = new Vector2(100, 100);
@@ -14,7 +12,7 @@ class MainMenu : GuiScreen
 
         GuiManager.RegisterGui(this);
 
-        this.testBtn = new Button(new Vector2(200, 200), 250, 63, Color.RED, "TEST", 45, this.testClickHandler);
+        this.CreateButton(new Vector2(200, 200), 250, 63, Color.RED, "TEST", 45, this.testClickHandler);
     }
 
     public int testClickHandler(Vector2 clickPos)
@@ -29,9 +27,8 @@ class MainMenu : GuiScreen
 
         if (this.open)
         {
-            this.DrawBackground(Raylib.ColorAlpha(Color.BLACK, 0.9f));
-
-            testBtn.draw();
+            this.DrawBackground(Raylib.ColorAlpha(Color.BLACK, 0.7f));
+            base.draw(shiftx, shifty);
         }
     }
 }

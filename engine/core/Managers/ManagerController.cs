@@ -9,7 +9,7 @@ static class ManagerController
 
     public static void update()
     {
-        foreach (IManager manager in Managers)
+        foreach (IManager manager in Managers.ToList())
         {
             manager.update();
         }

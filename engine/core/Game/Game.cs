@@ -8,14 +8,15 @@ class Game
         Raylib.SetExitKey(KeyboardKey.KEY_NULL);
 
         // Init Managers
-        new EntityManager();
-        new GuiManager();
+        new LevelManager();
     }
 
     public bool Loop()
     {
         if (!Raylib.WindowShouldClose())
         {
+            Time.UpdateEvents();
+
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.WHITE);
 
@@ -24,8 +25,6 @@ class Game
             Raylib.EndDrawing();
 
             Raylib.DrawFPS(5, 5);
-
-            Time.Time.UpdateEvents();
 
             return true;
         }

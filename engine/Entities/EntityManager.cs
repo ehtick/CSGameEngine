@@ -1,6 +1,8 @@
 class EntityManager : IManager
 {
-    public static List<Entity> Entities = new List<Entity>();
+    public bool active = true;
+
+    public List<Entity> Entities = new List<Entity>();
 
     public EntityManager()
     {
@@ -15,7 +17,7 @@ class EntityManager : IManager
         }
     }
 
-    public static void RegisterEntity(Entity entity)
+    public void RegisterEntity(Entity entity)
     {
         Entities.Add(entity);
     }
@@ -26,5 +28,10 @@ class EntityManager : IManager
         {
             entity.close();
         }
+    }
+
+    public bool isActive()
+    {
+        return active;
     }
 }

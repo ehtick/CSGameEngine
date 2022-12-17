@@ -1,5 +1,7 @@
 class GuiManager : IManager
 {
+    public bool active = true;
+
     public static List<GuiScreen> Guis = new List<GuiScreen>();
 
     public static List<GuiScreen> GuiStack = new List<GuiScreen>();
@@ -135,5 +137,10 @@ class GuiManager : IManager
     public void close()
     {
 
+    }
+
+    public bool isActive()
+    {
+        return active;
     }
 }
