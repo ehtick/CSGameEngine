@@ -1,0 +1,17 @@
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/MultiplayerServer
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/MultiplayerServer.deps.json
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/MultiplayerServer.runtimeconfig.json
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/MultiplayerServer.dll
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/ref/MultiplayerServer.dll
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/MultiplayerServer.pdb
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.csproj.AssemblyReference.cache
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.GeneratedMSBuildEditorConfig.editorconfig
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.AssemblyInfoInputs.cache
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.AssemblyInfo.cs
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.csproj.CoreCompileInputs.cache
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.dll
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/ref/MultiplayerServer.dll
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.pdb
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.genruntimeconfig.cache
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/bin/Debug/net6.0/RSG.Promise.dll
+/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/Debug/net6.0/MultiplayerServer.csproj.CopyComplete

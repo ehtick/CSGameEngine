@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "+iMK6aSRRFWGwvRnvbVXkgccMfMt5xvEtO//55Wrb/nKCKynFx1ygDqN+WmnlmSO6myjRaAlHL/8bbcllmttLA==",
+  "success": true,
+  "projectFilePath": "/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/MultiplayerServer.csproj",
+  "expectedPackageFiles": [
+    "/Users/mikaelchowdhury/.nuget/packages/rsg.promise/3.0.1/rsg.promise.3.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

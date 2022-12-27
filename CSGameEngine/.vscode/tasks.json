@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/CSGameEngine/CSGameEngine.csproj",
+                "${workspaceFolder}/CSGameEngine.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/CSGameEngine/CSGameEngine.csproj",
+                "${workspaceFolder}/CSGameEngine.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/CSGameEngine/CSGameEngine.csproj"
+                "${workspaceFolder}/CSGameEngine.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

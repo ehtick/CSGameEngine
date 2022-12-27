@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "MultiplayerServer/1.0.0": {
+        "dependencies": {
+          "RSG.Promise": "3.0.1"
+        },
+        "runtime": {
+          "MultiplayerServer.dll": {}
+        }
+      },
+      "RSG.Promise/3.0.1": {
+        "runtime": {
+          "lib/netstandard2.0/RSG.Promise.dll": {
+            "assemblyVersion": "3.0.1.0",
+            "fileVersion": "3.0.1.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MultiplayerServer/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RSG.Promise/3.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sxYKwYbi6B7vJG5Mqu0b3M5DZ4FAoFObp0Bwnp6oyeS0QZXyF0reTxgoT3Psvl0ZIfmw0a1l648q+ttfYNy6WA==",
+      "path": "rsg.promise/3.0.1",
+      "hashPath": "rsg.promise.3.0.1.nupkg.sha512"
+    }
+  }
+}
