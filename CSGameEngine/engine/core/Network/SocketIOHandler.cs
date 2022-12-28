@@ -31,7 +31,7 @@ class SocketIOHandler
         return "";
     }
 
-    public async Task<int> ConnectToServer(string uri)
+    public int ConnectToServer(string uri)
     {
         IPAddress ipAddress = IPAddress.Parse(uri);
         IPEndPoint ipEndPoint = new(ipAddress, 11_000);
@@ -41,7 +41,20 @@ class SocketIOHandler
     SocketType.Stream,
     ProtocolType.Tcp);
         this.client = client;
-        await client.ConnectAsync(ipEndPoint);
+
+        IAsyncResult result = client.BeginConnect(ipEndPoint, null, null);
+        bool success = result.AsyncWaitHandle.WaitOne(5000, true);
+
+        if (client.Connected)
+        {
+            client.EndConnect(result);
+        }
+        else
+        {
+            client.Close();
+            throw new SocketException();
+        }
+
         return 0;
     }
 }

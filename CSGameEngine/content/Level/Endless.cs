@@ -32,7 +32,7 @@ class Endless : Level
 
         minimap = new Minimap(this, player);
 
-        this.light = new Light((int)(Configuration.config.lightSize), 0.4f, (int)(Configuration.config.lightSize * 1.33), new Vector2(0, 0), false);
+        this.light = new Light((int)(Configuration.config.lightSize), 0.2f, (int)(Configuration.config.lightSize * 1.33), new Vector2(0, 0), false);
 
         attackRange = new Raeuleaux(player.rect.Center, Configuration.config.attackRangeRadius, Configuration.config.attackRangeBaseLength, new Vector2(0, 0));
 
@@ -68,7 +68,7 @@ class Endless : Level
         }
 
         // Create Fog
-        Raylib.DrawRectangle(0, 0, Configuration.config.SCREEN_WIDTH, Configuration.config.SCREEN_HEIGHT, Raylib.ColorAlpha(Color.BLACK, 0.8f));
+        Raylib.DrawRectangle(0, 0, Configuration.config.SCREEN_WIDTH, Configuration.config.SCREEN_HEIGHT, Raylib.ColorAlpha(Color.BLACK, 0.98f));
 
         // Mouse guided light
         Vector2 mousepos = Raylib.GetMousePosition();

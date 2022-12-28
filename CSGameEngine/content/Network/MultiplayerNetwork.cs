@@ -7,8 +7,8 @@ class MultiplayerNetwork
         handler = new SocketIOHandler();
     }
 
-    public async Task<int> ConnectToServer(string uri)
+    public int ConnectToServer(string uri)
     {
-        return await handler.ConnectToServer(uri);
+        return handler.ConnectToServer(uri);
     }
 }

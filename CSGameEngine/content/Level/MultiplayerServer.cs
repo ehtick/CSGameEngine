@@ -2,6 +2,8 @@ using Raylib_cs;
 using System.Numerics;
 using System.Text.Json;
 using RSG;
+using System.Net.Sockets;
+
 
 class MultiplayerServer : Level
 {
@@ -20,6 +22,16 @@ class MultiplayerServer : Level
 
     public Dictionary<string, PlayerObject> Players = new Dictionary<string, PlayerObject>();
 
+    public bool ConnectedToServer = false;
+
+    public string uri;
+
+    public Handshake? handshake;
+
+    public bool GameStarted = false;
+
+    public static GamemodeObject? gamemode = null;
+
     public MultiplayerServer(string uri, string username, string PlayerClass) : base()
     {
         player = new Player(this, PlayerClass);
@@ -29,7 +41,8 @@ class MultiplayerServer : Level
 
         network = new MultiplayerNetwork();
 
-        ConnectToServer(uri);
+        this.uri = uri;
+        new Thread(ConnectToServer).Start();
 
         minimap = new Minimap(this, player);
 
@@ -40,12 +53,28 @@ class MultiplayerServer : Level
         LevelManager.RegisterLevel(this);
     }
 
-    public async void ConnectToServer(string uri)
+    public void ConnectToServer()
     {
         GuiManager.OpenGui("SERVER_CONNECT_PENDING");
-        int code = await network.ConnectToServer(uri);
 
-        new Thread(WaitForLevel).Start();
+        try
+        {
+            network.ConnectToServer(uri);
+
+            new Thread(Handshake).Start();
+        }
+        catch (FormatException e)
+        {
+            GuiManager.CloseGui("SERVER_CONNECT_PENDING");
+            ServerConnectError.CONNECTION_ERROR = "INVALID SERVER ADDRESS";
+            GuiManager.OpenGui("SERVER_CONNECT_ERROR");
+        }
+        catch (SocketException e)
+        {
+            GuiManager.CloseGui("SERVER_CONNECT_PENDING");
+            ServerConnectError.CONNECTION_ERROR = "SERVER CONNECTION TIMED OUT (5000MS)";
+            GuiManager.OpenGui("SERVER_CONNECT_ERROR");
+        }
     }
 
     public void NetworkLoop()
@@ -81,80 +110,130 @@ class MultiplayerServer : Level
         }
     }
 
-    public void WaitForLevel()
+    public void Handshake()
     {
         string response = network.handler.GetResponse();
+        handshake = JsonSerializer.Deserialize<Handshake>(response);
 
-        JsonSerializerOptions opts = new JsonSerializerOptions() { };
-        MapObject? MAP = JsonSerializer.Deserialize<MapObject>(response, opts);
-
-        if (!(MAP is MapObject))
+        if (handshake.success)
         {
-            throw new Exception();
+            ConnectedToServer = true;
+            GuiManager.CloseGui("SERVER_CONNECT_PENDING");
+            new Thread(WaitForGameStart).Start();
         }
-
-        this.entityManager.RegisterEntities(Level.GenerateBorder(this, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2));
-
-        int _y = MAP.rtop;
-        int _x = MAP.rleft;
-
-        List<Vector2> possibleSpawnLocations = new List<Vector2>();
-
-        foreach (List<bool> row in MAP.MAP)
+        else
         {
-            _x = MAP.rleft;
-            foreach (bool cell in row)
+            GuiManager.CloseGui("SERVER_CONNECT_PENDING");
+
+            if (handshake.error == HandshakeError.SER_MAX_CAP)
             {
-                if (cell)
+                ServerConnectError.CONNECTION_ERROR = "SERVER REACHED MAXIMUM PLAYER CAPACITY";
+            }
+
+            GuiManager.OpenGui("SERVER_CONNECT_ERROR");
+        }
+    }
+
+    public async void WaitForGameStart()
+    {
+        if (!GameStarted)
+        {
+            if (handshake.isHost)
+            {
+                GuiManager.OpenGui("GAMEMODE_SELECT");
+
+                while (true)
                 {
-                    new Wall(this, new Vector2(_x * 100, _y * 100));
-                }
-                else
-                {
-                    if (_x < MAPSIZE / 2)
+                    if (gamemode != null)
                     {
-                        possibleSpawnLocations.Add(new Vector2(_x * 100, _y * 100));
+                        break;
                     }
                 }
-                _x++;
+
+                network.handler.SendMessage(JsonSerializer.Serialize<GamemodeObject>(gamemode));
             }
-            _y++;
+            else
+            {
+                GuiManager.OpenGui("WAITING_GAMEMODE_SELECT");
+
+                gamemode = JsonSerializer.Deserialize<GamemodeObject>(network.handler.GetResponse());
+            }
         }
+        else
+        {
+            MapObject MAP = handshake.MAP;
 
-        Vector2 spawnLoc = possibleSpawnLocations[new Random().Next(0, possibleSpawnLocations.Count - 1)];
-        camera.position = new Vector2(spawnLoc.X - 350, spawnLoc.Y - 350);
+            if (!(MAP is MapObject))
+            {
+                throw new Exception();
+            }
 
-        GuiManager.CloseGui("SERVER_CONNECT_PENDING");
-        LevelManager.ActiveLevel = this;
+            this.entityManager.RegisterEntities(Level.GenerateBorder(this, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2));
 
-        new Thread(NetworkLoop).Start();
+            int _y = MAP.rtop;
+            int _x = MAP.rleft;
+
+            List<Vector2> possibleSpawnLocations = new List<Vector2>();
+
+            foreach (List<bool> row in MAP.MAP)
+            {
+                _x = MAP.rleft;
+                foreach (bool cell in row)
+                {
+                    if (cell)
+                    {
+                        new Wall(this, new Vector2(_x * 100, _y * 100));
+                    }
+                    else
+                    {
+                        if (_x < MAPSIZE / 2)
+                        {
+                            possibleSpawnLocations.Add(new Vector2(_x * 100, _y * 100));
+                        }
+                    }
+                    _x++;
+                }
+                _y++;
+            }
+
+            Vector2 spawnLoc = possibleSpawnLocations[new Random().Next(0, possibleSpawnLocations.Count - 1)];
+            camera.position = new Vector2(spawnLoc.X - 350, spawnLoc.Y - 350);
+
+            LevelManager.ActiveLevel = this;
+
+            new Thread(NetworkLoop).Start();
+        }
     }
 
     public override void update()
     {
-        foreach (KeyValuePair<string, PlayerObject> pobj in Players)
+        if (ConnectedToServer && GameStarted)
         {
-            MultiplayerPlayer? player = entityManager.GetPlayerByUsername(pobj.Value.username);
-
-            if (player is MultiplayerPlayer)
+            foreach (KeyValuePair<string, PlayerObject> pobj in Players)
             {
-                player.Position = new Vector2(pobj.Value.x, pobj.Value.y);
+                MultiplayerPlayer? player = entityManager.GetPlayerByUsername(pobj.Value.username);
+
+                if (player is MultiplayerPlayer)
+                {
+                    player.Position = new Vector2(pobj.Value.x, pobj.Value.y);
+                }
             }
+
+            entityManager.update(camera);
+
+            Raylib.DrawRectangle(0, 0, Configuration.config.SCREEN_WIDTH, Configuration.config.SCREEN_HEIGHT, Raylib.ColorAlpha(Color.BLACK, 0.8f));
+
+            // Mouse guided light
+            Vector2 mousepos = Raylib.GetMousePosition();
+
+            this.light.Position = mousepos;
+            this.light.update();
+
+            minimap.update();
+
+            attackRange.targetPoint = mousepos;
+            attackRange.update();
         }
 
-        entityManager.update(camera);
-
-        Raylib.DrawRectangle(0, 0, Configuration.config.SCREEN_WIDTH, Configuration.config.SCREEN_HEIGHT, Raylib.ColorAlpha(Color.BLACK, 0.8f));
-
-        // Mouse guided light
-        Vector2 mousepos = Raylib.GetMousePosition();
-
-        this.light.Position = mousepos;
-        this.light.update();
-
-        minimap.update();
-
-        attackRange.targetPoint = mousepos;
-        attackRange.update();
     }
 }

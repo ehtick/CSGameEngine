@@ -14,6 +14,9 @@ public class SocketHandler
 
     public static int MAPSIZE = 1600;
 
+    public static int MaximumPlayers = 4;
+    public static int PlayerCount = 0;
+
     static Dictionary<string, PlayerObject> GetPOBJListWithout(string without)
     {
         Dictionary<string, PlayerObject> copied = new Dictionary<string, PlayerObject>(PlayerObjects);
@@ -65,9 +68,26 @@ public class SocketHandler
         }
     }
 
+    public static string GetLocalIPAddress()
+    {
+        string localIP;
+        using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+        {
+            socket.Connect("8.8.8.8", 65530);
+            IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+            localIP = endPoint.Address.ToString();
+        }
+        return localIP;
+    }
+
+    [Obsolete]
     public static void Main()
     {
-        IPAddress ipAddress = IPAddress.Parse("192.168.203.234");
+        string IP = GetLocalIPAddress();
+
+        Console.WriteLine("Attempting server start on Local Ip Address: " + IP);
+
+        IPAddress ipAddress = IPAddress.Parse(IP);
         IPEndPoint ipEndPoint = new(ipAddress, 11_000);
 
         using Socket listener = new(
@@ -90,6 +110,7 @@ public class SocketHandler
         while (true)
         {
             Socket s = listener.Accept();
+
             Thread thr = new Thread(() => SocketHandler.PlayerThread(s));
             thr.Start();
         }
@@ -104,49 +125,70 @@ public class SocketHandler
 
     public static async void PlayerThread(Socket s)
     {
-        handlers.Add(s);
-
-        int left = -800;
-        int right = 800;
-        int top = -800;
-        int bottom = 800;
-        int wallsize = 100;
-
-        int rleft = (int)Math.Floor((double)(left + wallsize) / wallsize);
-        int rright = (int)Math.Floor((double)(right) / wallsize);
-        int rtop = (int)Math.Floor((double)(top + wallsize) / wallsize);
-        int rbottom = (int)Math.Floor((double)(bottom - wallsize) / wallsize);
-
-        string serialized = JsonSerializer.Serialize(new MapObject(rleft, rright, rtop, rbottom, MAPSIZE, LEVEL));
-        SendMessage(serialized, s);
-
-        string? username = null;
-
-        s.ReceiveTimeout = 500;
-
-        while (true)
+        if (PlayerCount + 1 <= MaximumPlayers)
         {
-            string received = await GetResponse(s);
-            if (received != "TERROR")
+            PlayerCount++;
+            handlers.Add(s);
+
+            int left = -800;
+            int right = 800;
+            int top = -800;
+            int bottom = 800;
+            int wallsize = 100;
+
+            int rleft = (int)Math.Floor((double)(left + wallsize) / wallsize);
+            int rright = (int)Math.Floor((double)(right) / wallsize);
+            int rtop = (int)Math.Floor((double)(top + wallsize) / wallsize);
+            int rbottom = (int)Math.Floor((double)(bottom - wallsize) / wallsize);
+
+            string serialized = JsonSerializer.Serialize(new Handshake(true, new MapObject(rleft, rright, rtop, rbottom, MAPSIZE, LEVEL), null, PlayerCount == 1));
+            SendMessage(serialized, s);
+
+            string? username = null;
+
+            string gamemodeResponse = await GetResponse(s);
+
+            if (gamemodeResponse != "TERROR")
             {
-                try
-                {
-                    PlayerObject? pobj = JsonSerializer.Deserialize<PlayerObject>(received);
+                SendMessageAllExcept(gamemodeResponse, s);
 
-                    if (pobj is PlayerObject)
+                s.ReceiveTimeout = 500;
+
+                while (true)
+                {
+                    string received = await GetResponse(s);
+                    if (received != "TERROR")
                     {
-                        PlayerObjects[pobj.username] = pobj;
-                        username = pobj.username;
+                        try
+                        {
+                            PlayerObject? pobj = JsonSerializer.Deserialize<PlayerObject>(received);
+
+                            if (pobj is PlayerObject)
+                            {
+                                PlayerObjects[pobj.username] = pobj;
+                                username = pobj.username;
+                            }
+
+                            SendMessage(JsonSerializer.Serialize(GetPOBJListWithout(pobj.username)), s);
+                        }
+                        catch (Exception e)
+                        {
+                            if (username is string && PlayerObjects.ContainsKey(username))
+                            {
+                                PlayerObjects.Remove(username);
+                            }
+                            s.Close();
+                            PlayerCount--;
+                        }
                     }
-
-                    SendMessage(JsonSerializer.Serialize(GetPOBJListWithout(pobj.username)), s);
-                }
-                catch (Exception e)
-                {
-                    if (username is string && PlayerObjects.ContainsKey(username))
+                    else
                     {
-                        PlayerObjects.Remove(username);
+                        if (username is string && PlayerObjects.ContainsKey(username))
+                        {
+                            PlayerObjects.Remove(username);
+                        }
                         s.Close();
+                        PlayerCount--;
                     }
                 }
             }
@@ -155,9 +197,14 @@ public class SocketHandler
                 if (username is string && PlayerObjects.ContainsKey(username))
                 {
                     PlayerObjects.Remove(username);
-                    s.Close();
                 }
+                s.Close();
+                PlayerCount--;
             }
+        }
+        else
+        {
+            SendMessage(JsonSerializer.Serialize<Handshake>(new Handshake(false, null, HandshakeError.SER_MAX_CAP, false), new JsonSerializerOptions() { WriteIndented = true }), s);
         }
     }
 }

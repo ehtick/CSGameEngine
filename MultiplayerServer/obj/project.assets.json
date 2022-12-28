@@ -34,24 +34,31 @@
     ]
   },
   "packageFolders": {
-    "/Users/mikaelchowdhury/.nuget/packages/": {}
+    "C:\\Users\\mikae\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/MultiplayerServer.csproj",
+      "projectUniqueName": "D:\\programming\\CSGameEngine\\MultiplayerServer\\MultiplayerServer.csproj",
       "projectName": "MultiplayerServer",
-      "projectPath": "/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/MultiplayerServer.csproj",
-      "packagesPath": "/Users/mikaelchowdhury/.nuget/packages/",
-      "outputPath": "/Users/mikaelchowdhury/Documents/Programs/Seeka/MultiplayerServer/obj/",
+      "projectPath": "D:\\programming\\CSGameEngine\\MultiplayerServer\\MultiplayerServer.csproj",
+      "packagesPath": "C:\\Users\\mikae\\.nuget\\packages\\",
+      "outputPath": "D:\\programming\\CSGameEngine\\MultiplayerServer\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/Users/mikaelchowdhury/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\mikae\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -81,7 +88,8 @@
           "net47",
           "net471",
           "net472",
-          "net48"
+          "net48",
+          "net481"
         ],
         "assetTargetFallback": true,
         "warn": true,
@@ -90,7 +98,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/6.0.110/libexec/sdk/6.0.110/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }

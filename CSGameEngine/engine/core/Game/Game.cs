@@ -9,6 +9,8 @@ class Game
         Raylib.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, name);
         Raylib.SetExitKey(KeyboardKey.KEY_NULL);
 
+        Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
+
         // Init Managers
         new LevelManager();
         new GuiManager();

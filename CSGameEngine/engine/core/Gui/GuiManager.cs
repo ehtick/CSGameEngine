@@ -14,6 +14,9 @@ class GuiManager : IManager
         new LoadingScreen();
         new MultiplayerConnect();
         new ConnectingToServer();
+        new ServerConnectError();
+        new GamemodeSelect();
+        new WaitingGamemodeSelect();
 
         ManagerController.RegisterManager(this);
     }
@@ -133,7 +136,9 @@ class GuiManager : IManager
 
     public void update()
     {
-        foreach (GuiScreen gui in GuiStack.ToList())
+        List<GuiScreen> guis = GuiStack.ToList();
+        guis.Reverse();
+        foreach (GuiScreen gui in guis)
         {
             gui.update();
         }
