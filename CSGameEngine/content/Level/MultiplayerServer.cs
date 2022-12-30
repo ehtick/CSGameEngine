@@ -28,7 +28,8 @@ class MultiplayerServer : Level
 
     public Handshake? handshake;
 
-    public bool GameStarted = false;
+    public static bool GameStarted = false;
+    public static bool PlayersReady = false;
 
     public static GamemodeObject? gamemode = null;
 
@@ -112,6 +113,8 @@ class MultiplayerServer : Level
 
     public void Handshake()
     {
+        network.handler.SendMessage(JsonSerializer.Serialize(new HandshakeClient(this.playerUsername)));
+
         string response = network.handler.GetResponse();
         handshake = JsonSerializer.Deserialize<Handshake>(response);
 
@@ -129,6 +132,10 @@ class MultiplayerServer : Level
             {
                 ServerConnectError.CONNECTION_ERROR = "SERVER REACHED MAXIMUM PLAYER CAPACITY";
             }
+            else if (handshake.error == HandshakeError.GAME_STARTED)
+            {
+                ServerConnectError.CONNECTION_ERROR = "THIS SERVER ALREADY STARTED THEIR GAME";
+            }
 
             GuiManager.OpenGui("SERVER_CONNECT_ERROR");
         }
@@ -136,78 +143,114 @@ class MultiplayerServer : Level
 
     public async void WaitForGameStart()
     {
-        if (!GameStarted)
+        WaitingForPlayers.isHost = handshake.isHost;
+        GuiManager.OpenGui("WAITING_FOR_PLAYERS");
+
+        while (true)
         {
-            if (handshake.isHost)
-            {
-                GuiManager.OpenGui("GAMEMODE_SELECT");
+            network.handler.SendMessage("request_players");
+            List<string>? players = JsonSerializer.Deserialize<List<string>>(network.handler.GetResponse());
 
-                while (true)
+            if (players is List<string>)
+            {
+                WaitingForPlayers.Players = players;
+            }
+
+            if (!WaitingForPlayers.isHost)
+            {
+                network.handler.SendMessage("game_started");
+                string res = network.handler.GetResponse();
+                Console.WriteLine(res);
+                PlayersReady = JsonSerializer.Deserialize<bool>(res);
+            }
+
+            if (PlayersReady)
+            {
+                Console.WriteLine("not host players ready");
+                break;
+            }
+        }
+
+        if (WaitingForPlayers.isHost)
+        {
+            Console.WriteLine("host started");
+            network.handler.SendMessage("start_game");
+        }
+
+        GuiManager.CloseGui("WAITING_FOR_PLAYERS");
+
+        if (handshake.isHost)
+        {
+            GuiManager.OpenGui("GAMEMODE_SELECT");
+
+            while (true)
+            {
+                if (gamemode != null)
                 {
-                    if (gamemode != null)
-                    {
-                        break;
-                    }
+                    break;
                 }
-
-                network.handler.SendMessage(JsonSerializer.Serialize<GamemodeObject>(gamemode));
             }
-            else
-            {
-                GuiManager.OpenGui("WAITING_GAMEMODE_SELECT");
 
-                gamemode = JsonSerializer.Deserialize<GamemodeObject>(network.handler.GetResponse());
-            }
+            network.handler.SendMessage(JsonSerializer.Serialize<GamemodeObject>(gamemode));
         }
         else
         {
-            MapObject MAP = handshake.MAP;
+            GuiManager.OpenGui("WAITING_GAMEMODE_SELECT");
 
-            if (!(MAP is MapObject))
-            {
-                throw new Exception();
-            }
+            gamemode = JsonSerializer.Deserialize<GamemodeObject>(network.handler.GetResponse());
 
-            this.entityManager.RegisterEntities(Level.GenerateBorder(this, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2));
-
-            int _y = MAP.rtop;
-            int _x = MAP.rleft;
-
-            List<Vector2> possibleSpawnLocations = new List<Vector2>();
-
-            foreach (List<bool> row in MAP.MAP)
-            {
-                _x = MAP.rleft;
-                foreach (bool cell in row)
-                {
-                    if (cell)
-                    {
-                        new Wall(this, new Vector2(_x * 100, _y * 100));
-                    }
-                    else
-                    {
-                        if (_x < MAPSIZE / 2)
-                        {
-                            possibleSpawnLocations.Add(new Vector2(_x * 100, _y * 100));
-                        }
-                    }
-                    _x++;
-                }
-                _y++;
-            }
-
-            Vector2 spawnLoc = possibleSpawnLocations[new Random().Next(0, possibleSpawnLocations.Count - 1)];
-            camera.position = new Vector2(spawnLoc.X - 350, spawnLoc.Y - 350);
-
-            LevelManager.ActiveLevel = this;
-
-            new Thread(NetworkLoop).Start();
+            Console.WriteLine("GAMEMODE CHOSEN");
+            GuiManager.CloseGui("WAITING_GAMEMODE_SELECT");
         }
+
+        MapObject MAP = handshake.MAP;
+
+        if (!(MAP is MapObject))
+        {
+            throw new Exception();
+        }
+
+        this.entityManager.RegisterEntities(Level.GenerateBorder(this, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2, -(MAP.MAPSIZE / 2), MAP.MAPSIZE / 2));
+
+        int _y = MAP.rtop;
+        int _x = MAP.rleft;
+
+        List<Vector2> possibleSpawnLocations = new List<Vector2>();
+
+        foreach (List<bool> row in MAP.MAP)
+        {
+            _x = MAP.rleft;
+            foreach (bool cell in row)
+            {
+                if (cell)
+                {
+                    new Wall(this, new Vector2(_x * 100, _y * 100));
+                }
+                else
+                {
+                    if (_x < MAPSIZE / 2)
+                    {
+                        possibleSpawnLocations.Add(new Vector2(_x * 100, _y * 100));
+                    }
+                }
+                _x++;
+            }
+            _y++;
+        }
+
+        Vector2 spawnLoc = possibleSpawnLocations[new Random().Next(0, possibleSpawnLocations.Count - 1)];
+        camera.position = new Vector2(spawnLoc.X - 350, spawnLoc.Y - 350);
+
+        LevelManager.ActiveLevel = this;
+
+        new Thread(NetworkLoop).Start();
+
+        GameStarted = true;
     }
 
     public override void update()
     {
-        if (ConnectedToServer && GameStarted)
+        if (ConnectedToServer && PlayersReady && GameStarted)
         {
             foreach (KeyValuePair<string, PlayerObject> pobj in Players)
             {
@@ -234,6 +277,5 @@ class MultiplayerServer : Level
             attackRange.targetPoint = mousepos;
             attackRange.update();
         }
-
     }
 }

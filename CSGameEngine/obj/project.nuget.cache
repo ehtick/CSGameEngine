@@ -1,21 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "TXBCftZcniw/gNSZk9cAToueRpaKNj0dZlZ3aiTYvmsoZ0JAKsxNsrotWlSxL3roaOyw6OpdqzzJASbnzOpUWA==",
+  "dgSpecHash": "JeS1Qz4Bc0twE301zEpP6RSAffdbwbfP34u4i5CqrBRpXa2CNfI6XyTurzkfprdsdGvlAgTcBPsmEnniYHk6+Q==",
   "success": true,
-  "projectFilePath": "D:\\programming\\CSGameEngine\\CSGameEngine\\CSGameEngine.csproj",
+  "projectFilePath": "/Users/mikaelchowdhury/Documents/Programs/Seeka/CSGameEngine/CSGameEngine.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\mikae\\.nuget\\packages\\newtonsoft.json\\4.0.8\\newtonsoft.json.4.0.8.nupkg.sha512",
-    "C:\\Users\\mikae\\.nuget\\packages\\raylib-cs\\4.2.0.1\\raylib-cs.4.2.0.1.nupkg.sha512",
-    "C:\\Users\\mikae\\.nuget\\packages\\rsg.promise\\3.0.1\\rsg.promise.3.0.1.nupkg.sha512",
-    "C:\\Users\\mikae\\.nuget\\packages\\socketio4net.client\\0.6.26\\socketio4net.client.0.6.26.nupkg.sha512",
-    "C:\\Users\\mikae\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512"
+    "/Users/mikaelchowdhury/.nuget/packages/newtonsoft.json/4.0.8/newtonsoft.json.4.0.8.nupkg.sha512",
+    "/Users/mikaelchowdhury/.nuget/packages/raylib-cs/4.2.0.1/raylib-cs.4.2.0.1.nupkg.sha512",
+    "/Users/mikaelchowdhury/.nuget/packages/rsg.promise/3.0.1/rsg.promise.3.0.1.nupkg.sha512",
+    "/Users/mikaelchowdhury/.nuget/packages/socketio4net.client/0.6.26/socketio4net.client.0.6.26.nupkg.sha512",
+    "/Users/mikaelchowdhury/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Newtonsoft.Json 4.0.8' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net6.0'. This package may not be fully compatible with your project.",
+      "message": "Package 'Newtonsoft.Json 4.0.8' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net6.0'. This package may not be fully compatible with your project.",
       "libraryId": "Newtonsoft.Json",
       "targetGraphs": [
         "net6.0"
@@ -25,7 +25,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'SocketIO4Net.Client 0.6.26' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net6.0'. This package may not be fully compatible with your project.",
+      "message": "Package 'SocketIO4Net.Client 0.6.26' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net6.0'. This package may not be fully compatible with your project.",
       "libraryId": "SocketIO4Net.Client",
       "targetGraphs": [
         "net6.0"

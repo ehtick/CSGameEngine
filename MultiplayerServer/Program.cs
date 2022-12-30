@@ -12,10 +12,16 @@ public class SocketHandler
 
     public static List<List<bool>> LEVEL;
 
+    static List<string> PlayerUsernames = new List<string>();
+
     public static int MAPSIZE = 1600;
 
     public static int MaximumPlayers = 4;
     public static int PlayerCount = 0;
+
+    public static bool gameStarted = false;
+
+    public static bool PlayersReady = false;
 
     static Dictionary<string, PlayerObject> GetPOBJListWithout(string without)
     {
@@ -127,84 +133,140 @@ public class SocketHandler
     {
         if (PlayerCount + 1 <= MaximumPlayers)
         {
-            PlayerCount++;
-            handlers.Add(s);
-
-            int left = -800;
-            int right = 800;
-            int top = -800;
-            int bottom = 800;
-            int wallsize = 100;
-
-            int rleft = (int)Math.Floor((double)(left + wallsize) / wallsize);
-            int rright = (int)Math.Floor((double)(right) / wallsize);
-            int rtop = (int)Math.Floor((double)(top + wallsize) / wallsize);
-            int rbottom = (int)Math.Floor((double)(bottom - wallsize) / wallsize);
-
-            string serialized = JsonSerializer.Serialize(new Handshake(true, new MapObject(rleft, rright, rtop, rbottom, MAPSIZE, LEVEL), null, PlayerCount == 1));
-            SendMessage(serialized, s);
-
-            string? username = null;
-
-            string gamemodeResponse = await GetResponse(s);
-
-            if (gamemodeResponse != "TERROR")
+            if (!gameStarted && !PlayersReady)
             {
-                SendMessageAllExcept(gamemodeResponse, s);
+                PlayerCount++;
+                handlers.Add(s);
 
-                s.ReceiveTimeout = 500;
+                int left = -800;
+                int right = 800;
+                int top = -800;
+                int bottom = 800;
+                int wallsize = 100;
 
-                while (true)
+                int rleft = (int)Math.Floor((double)(left + wallsize) / wallsize);
+                int rright = (int)Math.Floor((double)(right) / wallsize);
+                int rtop = (int)Math.Floor((double)(top + wallsize) / wallsize);
+                int rbottom = (int)Math.Floor((double)(bottom - wallsize) / wallsize);
+
+                HandshakeClient? handshake = JsonSerializer.Deserialize<HandshakeClient>(await GetResponse(s));
+
+                if (PlayerUsernames.Contains(handshake.username))
                 {
-                    string received = await GetResponse(s);
-                    if (received != "TERROR")
+                    SendMessage(JsonSerializer.Serialize(new Handshake(false, null, HandshakeError.MAT_USR, false)), s);
+                    s.Close();
+                }
+                else
+                {
+                    PlayerUsernames.Add(handshake.username);
+
+                    string serialized = JsonSerializer.Serialize(new Handshake(true, new MapObject(rleft, rright, rtop, rbottom, MAPSIZE, LEVEL), null, PlayerCount == 1));
+                    SendMessage(serialized, s);
+
+                    while (!gameStarted)
                     {
-                        try
-                        {
-                            PlayerObject? pobj = JsonSerializer.Deserialize<PlayerObject>(received);
+                        string msg = await GetResponse(s);
 
-                            if (pobj is PlayerObject)
+                        if (msg != "TERROR")
+                        {
+                            if (msg == "request_players")
                             {
-                                PlayerObjects[pobj.username] = pobj;
-                                username = pobj.username;
+                                SendMessage(JsonSerializer.Serialize(PlayerUsernames), s);
                             }
-
-                            SendMessage(JsonSerializer.Serialize(GetPOBJListWithout(pobj.username)), s);
-                        }
-                        catch (Exception e)
-                        {
-                            if (username is string && PlayerObjects.ContainsKey(username))
+                            else if (msg == "game_started")
                             {
-                                PlayerObjects.Remove(username);
+                                SendMessage(JsonSerializer.Serialize(gameStarted), s);
+                            }
+                            else if (msg == "start_game")
+                            {
+                                gameStarted = true;
+
+                                string gamemodeResponse = await GetResponse(s);
+
+                                if (gamemodeResponse != "TERROR")
+                                {
+                                    SendMessageAllExcept(gamemodeResponse, s);
+
+                                    s.ReceiveTimeout = 500;
+
+                                    while (true)
+                                    {
+                                        string received = await GetResponse(s);
+                                        if (received != "TERROR")
+                                        {
+                                            try
+                                            {
+                                                PlayerObject? pobj = JsonSerializer.Deserialize<PlayerObject>(received);
+
+                                                if (pobj is PlayerObject)
+                                                {
+                                                    PlayerObjects[pobj.username] = pobj;
+                                                    handshake.username = pobj.username;
+                                                }
+
+                                                SendMessage(JsonSerializer.Serialize(GetPOBJListWithout(pobj.username)), s);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                                                {
+                                                    PlayerObjects.Remove(handshake.username);
+                                                }
+                                                s.Close();
+                                                PlayerCount--;
+                                                PlayerUsernames.Remove(handshake.username);
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                                            {
+                                                PlayerObjects.Remove(handshake.username);
+                                            }
+                                            s.Close();
+                                            PlayerCount--;
+                                            PlayerUsernames.Remove(handshake.username);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                                    {
+                                        PlayerObjects.Remove(handshake.username);
+                                    }
+                                    s.Close();
+                                    PlayerCount--;
+                                    PlayerUsernames.Remove(handshake.username);
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                            {
+                                PlayerObjects.Remove(handshake.username);
                             }
                             s.Close();
                             PlayerCount--;
+                            PlayerUsernames.Remove(handshake.username);
+
                         }
-                    }
-                    else
-                    {
-                        if (username is string && PlayerObjects.ContainsKey(username))
-                        {
-                            PlayerObjects.Remove(username);
-                        }
-                        s.Close();
-                        PlayerCount--;
                     }
                 }
             }
             else
             {
-                if (username is string && PlayerObjects.ContainsKey(username))
-                {
-                    PlayerObjects.Remove(username);
-                }
+                SendMessage(JsonSerializer.Serialize<Handshake>(new Handshake(false, null, HandshakeError.GAME_STARTED, false)), s);
                 s.Close();
-                PlayerCount--;
             }
         }
         else
         {
             SendMessage(JsonSerializer.Serialize<Handshake>(new Handshake(false, null, HandshakeError.SER_MAX_CAP, false), new JsonSerializerOptions() { WriteIndented = true }), s);
+            s.Close();
         }
     }
 }

@@ -17,6 +17,7 @@ class GuiManager : IManager
         new ServerConnectError();
         new GamemodeSelect();
         new WaitingGamemodeSelect();
+        new WaitingForPlayers();
 
         ManagerController.RegisterManager(this);
     }

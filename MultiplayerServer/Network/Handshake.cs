@@ -16,5 +16,7 @@ class Handshake
 
 enum HandshakeError
 {
-    SER_MAX_CAP
+    SER_MAX_CAP,
+    GAME_STARTED,
+    MAT_USR
 }
