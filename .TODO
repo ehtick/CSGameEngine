@@ -1,0 +1,6 @@
+TODO: create system where players hold copies of other players, 
+and send updated list to server which updates its copy, 
+and sends it to the other clients before receiving their copy next tick
+
+
+DEADLINE: 2023-01-30

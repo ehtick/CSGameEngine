@@ -131,6 +131,8 @@ public class SocketHandler
 
     public static async void PlayerThread(Socket s)
     {
+        bool gameStartedForPlayer = false;
+
         if (PlayerCount + 1 <= MaximumPlayers)
         {
             if (!gameStarted && !PlayersReady)
@@ -162,8 +164,9 @@ public class SocketHandler
 
                     string serialized = JsonSerializer.Serialize(new Handshake(true, new MapObject(rleft, rright, rtop, rbottom, MAPSIZE, LEVEL), null, PlayerCount == 1));
                     SendMessage(serialized, s);
+                    bool isHost = PlayerCount == 1;
 
-                    while (!gameStarted)
+                    while (!gameStartedForPlayer)
                     {
                         string msg = await GetResponse(s);
 
@@ -176,71 +179,12 @@ public class SocketHandler
                             else if (msg == "game_started")
                             {
                                 SendMessage(JsonSerializer.Serialize(gameStarted), s);
+                                gameStartedForPlayer = gameStarted;
                             }
                             else if (msg == "start_game")
                             {
                                 gameStarted = true;
-
-                                string gamemodeResponse = await GetResponse(s);
-
-                                if (gamemodeResponse != "TERROR")
-                                {
-                                    SendMessageAllExcept(gamemodeResponse, s);
-
-                                    s.ReceiveTimeout = 500;
-
-                                    while (true)
-                                    {
-                                        string received = await GetResponse(s);
-                                        if (received != "TERROR")
-                                        {
-                                            try
-                                            {
-                                                PlayerObject? pobj = JsonSerializer.Deserialize<PlayerObject>(received);
-
-                                                if (pobj is PlayerObject)
-                                                {
-                                                    PlayerObjects[pobj.username] = pobj;
-                                                    handshake.username = pobj.username;
-                                                }
-
-                                                SendMessage(JsonSerializer.Serialize(GetPOBJListWithout(pobj.username)), s);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                                                {
-                                                    PlayerObjects.Remove(handshake.username);
-                                                }
-                                                s.Close();
-                                                PlayerCount--;
-                                                PlayerUsernames.Remove(handshake.username);
-
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                                            {
-                                                PlayerObjects.Remove(handshake.username);
-                                            }
-                                            s.Close();
-                                            PlayerCount--;
-                                            PlayerUsernames.Remove(handshake.username);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                                    {
-                                        PlayerObjects.Remove(handshake.username);
-                                    }
-                                    s.Close();
-                                    PlayerCount--;
-                                    PlayerUsernames.Remove(handshake.username);
-
-                                }
+                                gameStartedForPlayer = true;
                             }
                         }
                         else
@@ -255,6 +199,78 @@ public class SocketHandler
 
                         }
                     }
+
+                    if (isHost)
+                    {
+                        string gamemodeResponse = await GetResponse(s);
+
+                        if (gamemodeResponse != "TERROR")
+                        {
+                            SendMessageAllExcept(gamemodeResponse, s);
+
+                        }
+                        else
+                        {
+                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                            {
+                                PlayerObjects.Remove(handshake.username);
+                            }
+                            s.Close();
+                            PlayerCount--;
+                            PlayerUsernames.Remove(handshake.username);
+
+                        }
+                    }
+
+                    if (!isHost)
+                    {
+                        string gamemodecheck = await GetResponse(s);
+                        if (gamemodecheck != "received_gamemode")
+                            throw new Exception();
+                    }
+
+                    s.ReceiveTimeout = 500;
+
+                    while (true)
+                    {
+                        SendMessage(JsonSerializer.Serialize(PlayerObjects), s);
+
+                        string received = await GetResponse(s);
+                        if (received != "TERROR")
+                        {
+                            try
+                            {
+                                Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(received);
+
+                                if (pobjs is PlayerObject[])
+                                {
+                                    PlayerObjects = pobjs;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                                {
+                                    PlayerObjects.Remove(handshake.username);
+                                }
+                                s.Close();
+                                PlayerCount--;
+                                PlayerUsernames.Remove(handshake.username);
+
+                            }
+                        }
+                        else
+                        {
+                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
+                            {
+                                PlayerObjects.Remove(handshake.username);
+                            }
+                            s.Close();
+                            PlayerCount--;
+                            PlayerUsernames.Remove(handshake.username);
+                        }
+                    }
+
                 }
             }
             else

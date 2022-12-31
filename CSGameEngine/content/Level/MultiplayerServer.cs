@@ -82,20 +82,16 @@ class MultiplayerServer : Level
     {
         while (true)
         {
-            network.handler.SendMessage(JsonSerializer.Serialize(new PlayerObject((int)camera.position.X + 400, (int)camera.position.Y + 400, playerUsername)));
-
             string response = network.handler.GetResponse();
+            Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(response);
 
             try
             {
-                Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(response);
 
                 if (!(pobjs is Dictionary<string, PlayerObject>))
                 {
                     throw new Exception();
                 }
-
-                Players = pobjs;
 
                 foreach (KeyValuePair<string, PlayerObject> pobj in pobjs)
                 {
@@ -108,6 +104,11 @@ class MultiplayerServer : Level
             catch (Exception e)
             {
             }
+
+            pobjs[this.playerUsername] = new PlayerObject((int)camera.position.X + 400, (int)camera.position.Y + 400, playerUsername);
+            Players = pobjs;
+
+            network.handler.SendMessage(JsonSerializer.Serialize(pobjs));
         }
     }
 
@@ -149,7 +150,9 @@ class MultiplayerServer : Level
         while (true)
         {
             network.handler.SendMessage("request_players");
-            List<string>? players = JsonSerializer.Deserialize<List<string>>(network.handler.GetResponse());
+            string _res = network.handler.GetResponse();
+            Console.WriteLine(_res);
+            List<string>? players = JsonSerializer.Deserialize<List<string>>(_res);
 
             if (players is List<string>)
             {
@@ -160,13 +163,12 @@ class MultiplayerServer : Level
             {
                 network.handler.SendMessage("game_started");
                 string res = network.handler.GetResponse();
-                Console.WriteLine(res);
                 PlayersReady = JsonSerializer.Deserialize<bool>(res);
+                Console.WriteLine(PlayersReady);
             }
 
             if (PlayersReady)
             {
-                Console.WriteLine("not host players ready");
                 break;
             }
         }
@@ -198,8 +200,8 @@ class MultiplayerServer : Level
             GuiManager.OpenGui("WAITING_GAMEMODE_SELECT");
 
             gamemode = JsonSerializer.Deserialize<GamemodeObject>(network.handler.GetResponse());
+            network.handler.SendMessage("received_gamemode");
 
-            Console.WriteLine("GAMEMODE CHOSEN");
             GuiManager.CloseGui("WAITING_GAMEMODE_SELECT");
         }
 

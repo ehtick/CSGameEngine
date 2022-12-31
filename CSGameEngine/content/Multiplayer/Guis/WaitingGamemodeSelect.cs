@@ -5,13 +5,13 @@ class WaitingGamemodeSelect : GuiScreen
 {
     public WaitingGamemodeSelect() : base("WAITING_GAMEMODE_SELECT")
     {
-        Label message = new Label(Vector2.Zero, 600, 100, Color.BLACK, "WAITING FOR HOST TO SELECT GAMEMODE", 35, true);
-        message.Center = new Vector2(400, 400);
-        RegisterUIElement(message);
-
         Rectangle labelBg = new Rectangle(Vector2.Zero, 600, 100, Color.RED);
         labelBg.Center = new Vector2(400, 400);
         RegisterUIElement(labelBg);
+
+        Label message = new Label(Vector2.Zero, 600, 100, Color.BLACK, "WAITING FOR HOST TO SELECT GAMEMODE", 35, true);
+        message.Center = new Vector2(400, 400);
+        RegisterUIElement(message);
 
         GuiManager.RegisterGui(this);
     }
@@ -20,7 +20,5 @@ class WaitingGamemodeSelect : GuiScreen
     {
         DrawBackground(Color.BLACK);
         base.update(shiftx, shifty);
-
-        Console.WriteLine("waiting running");
     }
 }

@@ -9,4 +9,6 @@ class Configuration
 
     public int attackRangeRadius { get; set; }
     public int attackRangeBaseLength { get; set; }
+
+    public bool debugMode { get; set; }
 }

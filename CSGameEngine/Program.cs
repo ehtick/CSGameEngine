@@ -1,5 +1,4 @@
 ﻿using Raylib_cs;
-using System.Numerics;
 
 static class Program
 {
@@ -11,6 +10,12 @@ static class Program
         MultiplayerPlayer.Init();
 
         GuiManager.OpenGui("MAIN_MENU");
+
+        if (Configuration.config.debugMode)
+        {
+            GuiManager.CloseGui("MAIN_MENU");
+            LevelManager.ActiveLevel = new MultiplayerServer("192.168.1.156", "player" + new Random().Next(1, 999), "ASSASSIN");
+        }
 
         Raylib.HideCursor();
 
