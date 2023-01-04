@@ -11,4 +11,6 @@ class Configuration
     public int attackRangeBaseLength { get; set; }
 
     public bool debugMode { get; set; }
+
+    public bool showNetworkMessages { get; set; }
 }

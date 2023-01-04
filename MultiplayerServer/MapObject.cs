@@ -1,4 +1,4 @@
-class MapObject
+public class MapObject
 {
     public int rleft { get; set; }
     public int rright { get; set; }

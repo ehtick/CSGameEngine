@@ -21,7 +21,10 @@ public class SocketHandler
 
     public static bool gameStarted = false;
 
-    public static bool PlayersReady = false;
+    public static bool networkLock = false;
+
+    public static List<Socket> workerThreadSocketList = new List<Socket>();
+    public static List<HandshakeClient> workerThreadHandshakeList = new List<HandshakeClient>();
 
     static Dictionary<string, PlayerObject> GetPOBJListWithout(string without)
     {
@@ -32,8 +35,17 @@ public class SocketHandler
 
     public static async void SendMessage(string message, Socket handler)
     {
-        var echoBytes = Encoding.UTF8.GetBytes(message);
-        await handler.SendAsync(echoBytes, 0);
+        try
+        {
+            var echoBytes = Encoding.UTF8.GetBytes(message);
+            // Console.WriteLine("SENT => " + message);
+            await handler.SendAsync(Compression.Compress(echoBytes), 0);
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+
     }
 
     public static void SendMessageAll(string message)
@@ -57,11 +69,13 @@ public class SocketHandler
 
     public static async Task<string> GetResponse(Socket handler)
     {
-        var buffer = new byte[4_096];
+        var buffer = new byte[2_048];
         try
         {
             var received = await handler.ReceiveAsync(buffer, SocketFlags.None);
-            var response = Encoding.UTF8.GetString(buffer, 0, received);
+            byte[] decompressed = Compression.Decompress(buffer);
+            var response = Encoding.UTF8.GetString(decompressed, 0, decompressed.Length);
+            // Console.WriteLine("RECEIVED => " + response);
             return response;
         }
         catch (SocketException e)
@@ -106,6 +120,8 @@ public class SocketHandler
 
         Console.WriteLine("STARTED SOCKET SERVER");
 
+        new Thread(WorkerThread).Start();
+
         GenerateLevel(listener);
 
         WaitForPlayers(listener);
@@ -129,13 +145,83 @@ public class SocketHandler
         return 0;
     }
 
+    private static void DisconnectPlayer(string username, Socket s)
+    {
+        int index = PlayerUsernames.IndexOf(username);
+
+        if (username is string && PlayerObjects.ContainsKey(username))
+        {
+            PlayerObjects.Remove(username);
+        }
+        s.Close();
+        PlayerCount--;
+        PlayerUsernames.Remove(username);
+        handlers.Remove(s);
+
+        workerThreadHandshakeList.RemoveAt(index);
+        workerThreadSocketList.RemoveAt(index);
+
+        if (PlayerCount == 0)
+        {
+            gameStarted = false;
+        }
+    }
+
+    public static async void WorkerThread()
+    {
+        while (true)
+        {
+            int index = 0;
+            foreach (Socket s in workerThreadSocketList.ToList())
+            {
+                HandshakeClient handshake = workerThreadHandshakeList[index];
+                try
+                {
+                    SendMessage(JsonSerializer.Serialize(PlayerObjects), s);
+                }
+                catch (Exception e)
+                {
+                    DisconnectPlayer(handshake.username, s);
+                }
+
+                string received = await GetResponse(s);
+                if (received != "TERROR")
+                {
+                    try
+                    {
+                        Console.WriteLine(JsonSerializer.Serialize(PlayerObjects));
+
+                        Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(received);
+
+                        if (pobjs is Dictionary<string, PlayerObject>)
+                        {
+                            if (!networkLock)
+                            {
+                                networkLock = true;
+                                PlayerObjects = pobjs;
+                                networkLock = false;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        DisconnectPlayer(handshake.username, s);
+                    }
+                }
+                else DisconnectPlayer(handshake.username, s);
+
+                index++;
+            }
+        }
+    }
+
     public static async void PlayerThread(Socket s)
     {
         bool gameStartedForPlayer = false;
 
         if (PlayerCount + 1 <= MaximumPlayers)
         {
-            if (!gameStarted && !PlayersReady)
+            if (!gameStarted)
             {
                 PlayerCount++;
                 handlers.Add(s);
@@ -187,17 +273,7 @@ public class SocketHandler
                                 gameStartedForPlayer = true;
                             }
                         }
-                        else
-                        {
-                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                            {
-                                PlayerObjects.Remove(handshake.username);
-                            }
-                            s.Close();
-                            PlayerCount--;
-                            PlayerUsernames.Remove(handshake.username);
-
-                        }
+                        else DisconnectPlayer(handshake.username, s);
                     }
 
                     if (isHost)
@@ -209,17 +285,7 @@ public class SocketHandler
                             SendMessageAllExcept(gamemodeResponse, s);
 
                         }
-                        else
-                        {
-                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                            {
-                                PlayerObjects.Remove(handshake.username);
-                            }
-                            s.Close();
-                            PlayerCount--;
-                            PlayerUsernames.Remove(handshake.username);
-
-                        }
+                        else DisconnectPlayer(handshake.username, s);
                     }
 
                     if (!isHost)
@@ -231,46 +297,8 @@ public class SocketHandler
 
                     s.ReceiveTimeout = 500;
 
-                    while (true)
-                    {
-                        SendMessage(JsonSerializer.Serialize(PlayerObjects), s);
-
-                        string received = await GetResponse(s);
-                        if (received != "TERROR")
-                        {
-                            try
-                            {
-                                Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(received);
-
-                                if (pobjs is PlayerObject[])
-                                {
-                                    PlayerObjects = pobjs;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                                {
-                                    PlayerObjects.Remove(handshake.username);
-                                }
-                                s.Close();
-                                PlayerCount--;
-                                PlayerUsernames.Remove(handshake.username);
-
-                            }
-                        }
-                        else
-                        {
-                            if (handshake.username is string && PlayerObjects.ContainsKey(handshake.username))
-                            {
-                                PlayerObjects.Remove(handshake.username);
-                            }
-                            s.Close();
-                            PlayerCount--;
-                            PlayerUsernames.Remove(handshake.username);
-                        }
-                    }
-
+                    workerThreadSocketList.Add(s);
+                    workerThreadHandshakeList.Add(handshake);
                 }
             }
             else

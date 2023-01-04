@@ -4,5 +4,6 @@
     "lightSize": 150,
     "attackRangeRadius": 350,
     "attackRangeBaseLength": 300,
-    "debugMode": true
+    "debugMode": true,
+    "showNetworkMessages": false
 }

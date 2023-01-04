@@ -1,9 +1,8 @@
 using Raylib_cs;
 using System.Numerics;
 using System.Text.Json;
-using RSG;
 using System.Net.Sockets;
-
+using System.Reflection;
 
 class MultiplayerServer : Level
 {
@@ -29,9 +28,12 @@ class MultiplayerServer : Level
     public Handshake? handshake;
 
     public static bool GameStarted = false;
-    public static bool PlayersReady = false;
 
     public static GamemodeObject? gamemode = null;
+
+    public static bool PlayersReady = false;
+
+    public static bool firstUpdate = true;
 
     public MultiplayerServer(string uri, string username, string PlayerClass) : base()
     {
@@ -60,6 +62,7 @@ class MultiplayerServer : Level
 
         try
         {
+            Console.WriteLine("CONNECTING TO SERVER => " + uri);
             network.ConnectToServer(uri);
 
             new Thread(Handshake).Start();
@@ -95,17 +98,21 @@ class MultiplayerServer : Level
 
                 foreach (KeyValuePair<string, PlayerObject> pobj in pobjs)
                 {
-                    if (!entityManager.PlayerRegistered(pobj.Value.username))
+                    if (pobj.Value.username != playerUsername)
                     {
-                        entityManager.Players.Add(new MultiplayerPlayer(this, pobj.Value.username, new Vector2(pobj.Value.x, pobj.Value.y)));
+                        if (!entityManager.PlayerRegistered(pobj.Value.username))
+                        {
+                            entityManager.Players.Add(new MultiplayerPlayer(this, pobj.Value.username, new Vector2(pobj.Value.x, pobj.Value.y)));
+                        }
                     }
+
                 }
             }
             catch (Exception e)
             {
             }
 
-            pobjs[this.playerUsername] = new PlayerObject((int)camera.position.X + 400, (int)camera.position.Y + 400, playerUsername);
+            pobjs[this.playerUsername] = new PlayerObject((int)camera.position.X + 400 - 25, (int)camera.position.Y + 400 - 25, playerUsername);
             Players = pobjs;
 
             network.handler.SendMessage(JsonSerializer.Serialize(pobjs));
@@ -151,7 +158,6 @@ class MultiplayerServer : Level
         {
             network.handler.SendMessage("request_players");
             string _res = network.handler.GetResponse();
-            Console.WriteLine(_res);
             List<string>? players = JsonSerializer.Deserialize<List<string>>(_res);
 
             if (players is List<string>)
@@ -164,7 +170,6 @@ class MultiplayerServer : Level
                 network.handler.SendMessage("game_started");
                 string res = network.handler.GetResponse();
                 PlayersReady = JsonSerializer.Deserialize<bool>(res);
-                Console.WriteLine(PlayersReady);
             }
 
             if (PlayersReady)
@@ -175,7 +180,6 @@ class MultiplayerServer : Level
 
         if (WaitingForPlayers.isHost)
         {
-            Console.WriteLine("host started");
             network.handler.SendMessage("start_game");
         }
 
@@ -254,6 +258,13 @@ class MultiplayerServer : Level
     {
         if (ConnectedToServer && PlayersReady && GameStarted)
         {
+            if (firstUpdate)
+            {
+                Gamemodes.InitGamemode(gamemode, player);
+
+                firstUpdate = false;
+            }
+
             foreach (KeyValuePair<string, PlayerObject> pobj in Players)
             {
                 MultiplayerPlayer? player = entityManager.GetPlayerByUsername(pobj.Value.username);

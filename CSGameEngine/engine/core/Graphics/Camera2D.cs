@@ -38,7 +38,7 @@ class Camera2D
             Vector2 mousepos = Raylib.GetMousePosition();
             Circle lightCirc = new Circle((int)mousepos.X, (int)mousepos.Y, Configuration.config.lightSize);
 
-            foreach (Entity entity in LevelManager.ActiveLevel.entityManager.Entities.ToList().Concat(LevelManager.ActiveLevel.entityManager.Players.ToList()))
+            foreach (Entity entity in LevelManager.ActiveLevel.entityManager.Players.ToList().Concat(LevelManager.ActiveLevel.entityManager.Entities.ToList()))
             {
                 if (!(entity is Wall || entity is Player))
                 {

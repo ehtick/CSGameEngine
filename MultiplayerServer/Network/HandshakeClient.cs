@@ -1,4 +1,4 @@
-class HandshakeClient
+public class HandshakeClient
 {
     public string username { get; set; }
 

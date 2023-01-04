@@ -15,7 +15,11 @@ class SocketIOHandler
     public async void SendMessage(string message)
     {
         var messageBytes = Encoding.UTF8.GetBytes(message);
-        _ = await client.SendAsync(messageBytes, SocketFlags.None);
+
+        if (Configuration.config.showNetworkMessages)
+            Console.WriteLine("SENT => " + message);
+
+        _ = await client.SendAsync(Compression.Compress(messageBytes), SocketFlags.None);
     }
 
     public string GetResponse()
@@ -23,8 +27,13 @@ class SocketIOHandler
         if (client is Socket)
         {
             byte[] buffer = new byte[4_096];
-            int received = client.Receive(buffer, 0, 4096, SocketFlags.None);
-            string response = Encoding.UTF8.GetString(buffer, 0, received);
+            var received = client.Receive(buffer, SocketFlags.None);
+            byte[] decompressed = Compression.Decompress(buffer);
+            var response = Encoding.UTF8.GetString(decompressed, 0, decompressed.Length);
+
+            if (Configuration.config.showNetworkMessages)
+                Console.WriteLine("RECEIVED => " + response);
+
             return response;
         }
 

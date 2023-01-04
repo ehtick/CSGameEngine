@@ -1,4 +1,4 @@
-class Handshake
+public class Handshake
 {
     public bool success { get; set; }
     public MapObject? MAP { get; set; }
@@ -14,7 +14,7 @@ class Handshake
     }
 }
 
-enum HandshakeError
+public enum HandshakeError
 {
     SER_MAX_CAP,
     GAME_STARTED,
