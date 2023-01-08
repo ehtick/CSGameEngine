@@ -2,7 +2,6 @@ using Raylib_cs;
 using System.Numerics;
 using System.Text.Json;
 using System.Net.Sockets;
-using System.Reflection;
 
 class MultiplayerServer : Level
 {
@@ -14,8 +13,6 @@ class MultiplayerServer : Level
     Minimap minimap;
 
     public Light light;
-
-    public Raeuleaux attackRange;
 
     public string playerUsername;
 
@@ -35,9 +32,13 @@ class MultiplayerServer : Level
 
     public static bool firstUpdate = true;
 
+    Rectangle rectTest;
+
     public MultiplayerServer(string uri, string username, string PlayerClass) : base()
     {
         player = new Player(this, PlayerClass);
+        player.inventory.AddItem(new CopperSword());
+
         camera = player.camera;
 
         this.playerUsername = username;
@@ -51,9 +52,9 @@ class MultiplayerServer : Level
 
         this.light = new Light((int)(Configuration.config.lightSize), 0.4f, (int)(Configuration.config.lightSize * 1.33), new Vector2(0, 0), false);
 
-        attackRange = new Raeuleaux(player.rect.Center, Configuration.config.attackRangeRadius, Configuration.config.attackRangeBaseLength, new Vector2(0, 0));
-
         LevelManager.RegisterLevel(this);
+
+        rectTest = new Rectangle(new Vector2(400, 400), 100, 100, Color.RED);
     }
 
     public void ConnectToServer()
@@ -78,44 +79,6 @@ class MultiplayerServer : Level
             GuiManager.CloseGui("SERVER_CONNECT_PENDING");
             ServerConnectError.CONNECTION_ERROR = "SERVER CONNECTION TIMED OUT (5000MS)";
             GuiManager.OpenGui("SERVER_CONNECT_ERROR");
-        }
-    }
-
-    public void NetworkLoop()
-    {
-        while (true)
-        {
-            string response = network.handler.GetResponse();
-            Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(response);
-
-            try
-            {
-
-                if (!(pobjs is Dictionary<string, PlayerObject>))
-                {
-                    throw new Exception();
-                }
-
-                foreach (KeyValuePair<string, PlayerObject> pobj in pobjs)
-                {
-                    if (pobj.Value.username != playerUsername)
-                    {
-                        if (!entityManager.PlayerRegistered(pobj.Value.username))
-                        {
-                            entityManager.Players.Add(new MultiplayerPlayer(this, pobj.Value.username, new Vector2(pobj.Value.x, pobj.Value.y)));
-                        }
-                    }
-
-                }
-            }
-            catch (Exception e)
-            {
-            }
-
-            pobjs[this.playerUsername] = new PlayerObject((int)camera.position.X + 400 - 25, (int)camera.position.Y + 400 - 25, playerUsername);
-            Players = pobjs;
-
-            network.handler.SendMessage(JsonSerializer.Serialize(pobjs));
         }
     }
 
@@ -234,7 +197,7 @@ class MultiplayerServer : Level
                 }
                 else
                 {
-                    if (_x < MAPSIZE / 2)
+                    if (_x < MAPSIZE / 2 && _y < MAPSIZE / 2)
                     {
                         possibleSpawnLocations.Add(new Vector2(_x * 100, _y * 100));
                     }
@@ -249,8 +212,6 @@ class MultiplayerServer : Level
 
         LevelManager.ActiveLevel = this;
 
-        new Thread(NetworkLoop).Start();
-
         GameStarted = true;
     }
 
@@ -258,6 +219,39 @@ class MultiplayerServer : Level
     {
         if (ConnectedToServer && PlayersReady && GameStarted)
         {
+            string response = network.handler.GetResponse();
+            Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(response);
+            Players = pobjs;
+
+            if (pobjs.ContainsKey(playerUsername))
+            {
+                player.statManager.Health = pobjs[playerUsername].health;
+            }
+
+            try
+            {
+
+                if (!(pobjs is Dictionary<string, PlayerObject>))
+                {
+                    throw new Exception();
+                }
+
+                foreach (KeyValuePair<string, PlayerObject> pobj in pobjs)
+                {
+                    if (pobj.Value.username != playerUsername)
+                    {
+                        if (!entityManager.PlayerRegistered(pobj.Value.username))
+                        {
+                            entityManager.Players.Add(new MultiplayerPlayer(this, pobj.Value.username, new Vector2(pobj.Value.x, pobj.Value.y)));
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+
             if (firstUpdate)
             {
                 Gamemodes.InitGamemode(gamemode, player);
@@ -267,17 +261,20 @@ class MultiplayerServer : Level
 
             foreach (KeyValuePair<string, PlayerObject> pobj in Players)
             {
-                MultiplayerPlayer? player = entityManager.GetPlayerByUsername(pobj.Value.username);
+                MultiplayerPlayer? p = entityManager.GetPlayerByUsername(pobj.Value.username);
 
-                if (player is MultiplayerPlayer)
+                if (p is MultiplayerPlayer)
                 {
-                    player.Position = new Vector2(pobj.Value.x, pobj.Value.y);
+                    p.Position = new Vector2(pobj.Value.x, pobj.Value.y);
+                    p.health = pobj.Value.health;
                 }
             }
 
             entityManager.update(camera);
 
             Raylib.DrawRectangle(0, 0, Configuration.config.SCREEN_WIDTH, Configuration.config.SCREEN_HEIGHT, Raylib.ColorAlpha(Color.BLACK, 0.8f));
+
+            player.update((int)camera.position.X, (int)camera.position.Y);
 
             // Mouse guided light
             Vector2 mousepos = Raylib.GetMousePosition();
@@ -287,8 +284,16 @@ class MultiplayerServer : Level
 
             minimap.update();
 
-            attackRange.targetPoint = mousepos;
-            attackRange.update();
+            if (Time.deltaTime == 0)
+            {
+                Console.WriteLine("0 DELTA TIME");
+            }
+
+            player.inventory.update(player);
+
+            Players[this.playerUsername] = new PlayerObject((int)camera.position.X + 400 - 25, (int)camera.position.Y + 400 - 25, playerUsername, player.statManager.Health);
+
+            network.handler.SendMessage(JsonSerializer.Serialize(Players));
         }
     }
 }

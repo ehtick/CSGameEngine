@@ -13,4 +13,13 @@ class Configuration
     public bool debugMode { get; set; }
 
     public bool showNetworkMessages { get; set; }
+
+    public float playerRotationSpeed { get; set; }
+
+    public BindingsConfiguration bindings { get; set; }
+}
+
+class BindingsConfiguration
+{
+    public char Inventory { get; set; }
 }

@@ -43,12 +43,12 @@ class Camera2D
                 if (!(entity is Wall || entity is Player))
                 {
                     Rect enemyRect = new Rect((int)(entity.Position.X - position.X), (int)(entity.Position.Y - position.Y), entity.Width, entity.Height);
-                    if (CollisionMath.intersects(lightCirc, enemyRect))
+                    if (CollisionMath.CircleIntersectsRectangle(lightCirc, enemyRect))
                     {
                         entity.update((int)position.X, (int)position.Y);
                     }
                 }
-                else
+                else if (!(entity is Player))
                 {
                     entity.update((int)position.X, (int)position.Y);
                 }

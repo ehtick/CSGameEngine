@@ -5,9 +5,13 @@ class Player : Entity
 {
     public Camera2D camera = new Camera2D();
 
-    public Animation playerAnimation;
-
     public StatManager statManager;
+
+    public Inventory inventory;
+
+    public Texture playerTexture;
+
+    public float angle = 0.0f;
 
     public Player(Level level, string playerClass) : base(level, Entities.PLAYER, "player", false)
     {
@@ -19,7 +23,7 @@ class Player : Entity
         this.rect.affectedByCamera = false;
         this.rect.Center = new Vector2(400, 400);
 
-        playerAnimation = new Animation("player-animation/", Width, Height, 6);
+        playerTexture = new Texture("textures/entities/player/player-texture.png", 50, 50);
 
         StatManager? sm = StatPreset.GetPreset(playerClass);
         if (sm is StatManager)
@@ -27,6 +31,8 @@ class Player : Entity
             statManager = sm.DeepCopy();
         }
         else throw new Exception();
+
+        inventory = new Inventory(18);
     }
 
     public void move(Vector2 amount)
@@ -84,9 +90,29 @@ class Player : Entity
 
     public override void update(int shiftx = 0, int shifty = 0)
     {
-        Raylib.DrawTexture(playerAnimation.frame.LoadedTexture, (int)400 - (Width / 2), (int)400 - (Height / 2), Color.WHITE);
 
-        playerAnimation.update();
+        angle += Configuration.config.playerRotationSpeed * Time.deltaTime;
+
+        if (angle >= 360)
+        {
+            angle -= 360;
+        }
+
+        Rlgl.rlPushMatrix();
+        Rlgl.rlTranslatef(400, 400, 0);
+        Rlgl.rlRotatef(angle, 0, 0, 1);
+        Rlgl.rlTranslatef(-400, -400, 0);
+
+        if (statManager.Health > 0)
+        {
+            Raylib.DrawTexture(playerTexture.LoadedTexture, (int)400 - (Width / 2), (int)400 - (Height / 2), Color.GOLD);
+        }
+        else
+        {
+            Raylib.DrawTexture(playerTexture.LoadedTexture, (int)400 - (Width / 2), (int)400 - (Height / 2), Color.LIGHTGRAY);
+        }
+
+        Rlgl.rlPopMatrix();
     }
 
     public override void close()

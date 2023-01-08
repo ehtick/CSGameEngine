@@ -5,5 +5,11 @@
     "attackRangeRadius": 350,
     "attackRangeBaseLength": 300,
     "debugMode": true,
-    "showNetworkMessages": false
+    "showNetworkMessages": false,
+
+    "playerRotationSpeed": 0.5,
+
+    "bindings": {
+        "Inventory": "i"
+    }
 }

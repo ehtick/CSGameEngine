@@ -189,8 +189,6 @@ public class SocketHandler
                 {
                     try
                     {
-                        Console.WriteLine(JsonSerializer.Serialize(PlayerObjects));
-
                         Dictionary<string, PlayerObject>? pobjs = JsonSerializer.Deserialize<Dictionary<string, PlayerObject>>(received);
 
                         if (pobjs is Dictionary<string, PlayerObject>)
@@ -280,10 +278,11 @@ public class SocketHandler
                     {
                         string gamemodeResponse = await GetResponse(s);
 
+                        Console.WriteLine(gamemodeResponse);
+
                         if (gamemodeResponse != "TERROR")
                         {
                             SendMessageAllExcept(gamemodeResponse, s);
-
                         }
                         else DisconnectPlayer(handshake.username, s);
                     }
@@ -291,6 +290,7 @@ public class SocketHandler
                     if (!isHost)
                     {
                         string gamemodecheck = await GetResponse(s);
+
                         if (gamemodecheck != "received_gamemode")
                             throw new Exception();
                     }
