@@ -11,11 +11,28 @@
             "id": "f5cc698e36c8126b",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "Progress Log.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "b240fedf1e683fbd",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "TODO.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -81,6 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "TODO.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "TODO.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +137,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "TODO.md"
+              }
             }
           }
         ]
@@ -138,7 +159,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "f5cc698e36c8126b",
+  "active": "b240fedf1e683fbd",
   "lastOpenFiles": [
     "Progress Log.md"
   ]
