@@ -16,9 +16,15 @@ Added Features
 - added white player texture rotation instead of loading animation
 - added coloured player textures by tinting depending on context, gold for player, light gray for dead player, bright red for alive enemy, faded red for spectating enemies
 - added player rotation speed to configuration file
+- started item and inventory storage system.
+	- started copper sword
 - started player combat system added spectator mode for when player dies
 
 Patches:
 - fixed Rlgl problem where player was creating trail of other players behind them
 - fixed low fps issue with Rlgl rotations
 - player rendering is not independent of other entity loading so that fog does not impact the player's image
+
+### Log 4 - 09/01/2023 (Single and Multiplayer)
+Added Features
+- added melee rotation around player base on texture sizes
